@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>AI Petrol Price Prediction</title>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+
+<style>
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:Arial, sans-serif;
+}
+
+body{
+    background:linear-gradient(135deg,#2196F3,#4CAF50);
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    padding:30px 20px;
+}
+
+.wrapper{
+    width:100%;
+    max-width:950px;
+    display:grid;
+    grid-template-columns:1fr 1.3fr;
+    gap:25px;
+}
+
+@media (max-width:760px){
+    .wrapper{
+        grid-template-columns:1fr;
+    }
+}
+
+.container{
+    background:white;
+    padding:30px;
+    border-radius:15px;
+    box-shadow:0 0 20px rgba(0,0,0,0.2);
+    text-align:center;
+}
+
+h1{
+    color:#2196F3;
+    margin-bottom:20px;
+    font-size:1.4rem;
+}
+
+h2{
+    color:#2196F3;
+    margin-bottom:18px;
+    font-size:1.15rem;
+    text-align:left;
+}
+
+input, select{
+    width:100%;
+    padding:12px;
+    margin:10px 0;
+    border:1px solid #ccc;
+    border-radius:8px;
+    font-size:16px;
+    background:white;
+}
+
+button{
+    width:100%;
+    padding:12px;
+    background:#2196F3;
+    color:white;
+    border:none;
+    border-radius:8px;
+    font-size:18px;
+    cursor:pointer;
+    margin-top:5px;
+}
+
+button:hover{
+    background:#1976D2;
+}
+
+.result{
+    margin-top:20px;
+    padding:14px;
+    border-radius:8px;
+    font-size:18px;
+    font-weight:bold;
+}
+
+.result.ok{
+    background:#e8f8ee;
+    color:#2e7d4f;
+}
+
+.result.warn{
+    background:#fdecea;
+    color:#c0392b;
+}
+
+.note{
+    margin-top:15px;
+    color:gray;
+    font-size:13px;
+    line-height:1.4;
+}
+
+.footer{
+    margin-top:15px;
+    color:gray;
+    font-size:14px;
+}
+
+.chart-container{
+    text-align:left;
+}
+
+canvas{
+    max-height:300px;
+}
+
+</style>
+
+</head>
+<body>
+
+<div class="wrapper">
+
+    <div class="container">
+
+        <h1>⛽AI Petrol Price Prediction⛽</h1>
+
+        <form action="/predict" method="POST">
+
+            <input type="number"
+                   name="year"
+                   placeholder="Enter Year"
+                   min="{{ min_year }}"
+                   required>
+
+            <select name="month" required>
+                <option value="" disabled selected>Select Month</option>
+                <option value="1">January</option>
+                <option value="2">February</option>
+                <option value="3">March</option>
+                <option value="4">April</option>
+                <option value="5">May</option>
+                <option value="6">June</option>
+                <option value="7">July</option>
+                <option value="8">August</option>
+                <option value="9">September</option>
+                <option value="10">October</option>
+                <option value="11">November</option>
+                <option value="12">December</option>
+            </select>
+
+            <button type="submit">
+                Predict Price
+            </button>
+
+        </form>
+
+        {% if prediction_text %}
+            {% if "⚠️" in prediction_text %}
+                <div class="result warn">{{ prediction_text }}</div>
+            {% else %}
+                <div class="result ok">{{ prediction_text }}</div>
+            {% endif %}
+        {% endif %}
+
+        <p class="note">Predictions are a rough trend estimate, not an exact forecast.</p>
+    </div>
+
+    <div class="container chart-container">
+        <h2>📈 Historical Trend ({{ min_year }}–Now) 📈</h2>
+        <canvas id="trendChart"></canvas>
+    </div>
+
+</div>
+
+<script>
+    fetch('/chart-data')
+        .then(res => res.json())
+        .then(data => {
+            const ctx = document.getElementById('trendChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: data.labels,
+                    datasets: [{
+                        label: 'Avg Petrol Rate (₹/L)',
+                        data: data.values,
+                        borderColor: '#2196F3',
+                        backgroundColor: 'rgba(33, 150, 243, 0.12)',
+                        borderWidth: 2,
+                        pointRadius: 0,
+                        tension: 0.25,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        x: {
+                            ticks: { maxTicksLimit: 7, color: '#777' },
+                            grid: { display: false }
+                        },
+                        y: {
+                            ticks: { color: '#777' },
+                            grid: { color: '#eee' }
+                        }
+                    }
+                }
+            });
+        });
+</script>
+
+</body>
+</html>
